@@ -1,0 +1,4 @@
+#%Modules
+
+append-path PATH "/software/afni_current"
+

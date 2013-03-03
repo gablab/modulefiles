@@ -1,0 +1,159 @@
+#%Modules
+
+namespace eval the-magick {
+  
+  # determine repository root
+  # nb, helper function only returns values
+  # nb, requires $::the_repo
+  proc determine_root {} {
+    set the_debug 0
+    if {$the_debug} { puts stderr "\n## determine_root" }
+    ## q: what to do if the_name includes '/' ? 
+    ## set the_name [join [lrange [split $the_module_name '/'] 0 [llength [split $the_module_name "/"]]] "/"]
+    # nb, module names mirror repository structure
+    set the_name [lindex [split $::the_name "/"] 0]
+    set the_version [lindex [split $::the_name '/'] 1]
+    if {$the_debug} {
+      puts stderr "## the_name: $the_name"
+      puts stderr "## the_version: $the_version"
+    }
+    ## q, what to do if the_name includes '/' ? 
+    set the_root [join [list $::the_repo $the_name] "/"]
+    if {$the_debug} { puts stderr "## the_root: $the_root" }
+    # prefer $name-$version to unadorned $name
+    if {[file exist $the_root/$the_name-$the_version]} {
+      set the_root [join [list $the_root $the_name-$the_version] "/"]
+      if {$the_debug} { puts stderr "## version-specific root: $the_root" }
+    }
+    # nb, override heuristic ARCH environment variable
+    # eg, available via 'module add arch' 
+    global env
+    if {[info exists env(MODULEARCH)]} {
+      set the_arch [lindex [array get env MODULEARCH] 1]
+    } else {
+      set the_arch [uname machine]
+    }
+    if {$the_debug} { puts stderr "## the_arch: $the_arch" }
+    # coerce the_arch to list
+    # nb, easier to have several "fallback paths"
+    set the_architectures [list $the_arch]
+    if {[string equal "x86_64" $the_arch]} {
+      set the_architectures [concat $the_architectures {i686} {i386}]
+    }
+    if {[string equal "i686" $the_arch]} {
+      set the_architectures [concat $the_architectures {i386}]
+    }
+    # prefer architecture-specific root
+    foreach the_architecture $the_architectures {
+      if {[file exist $the_root/$the_architecture]} {
+        if {$the_debug} { puts stderr "## arch-specific root: $the_root" }
+        set the_root [join [list $the_root $the_architecture] "/"]
+        break
+      }
+    }
+    if {$the_debug} { puts stderr "## returning the_root: $the_root" }
+    return $the_root
+  }
+    
+  # modify runtime environment
+  proc prepend_to_environment {list_of_directories list_of_environment_variables} {
+    set the_debug 0
+    if {$the_debug} { puts stderr "##\n## enter: prepend_directory_to_environment" }
+    #
+    foreach some_directory $list_of_directories {
+      if {[string equal "/" [string index $some_directory 0]]} {
+        set the_directory $some_directory
+      } else {
+        set the_directory $::the_root/$some_directory
+      }
+      if {$the_debug} { puts stderr "## checking $the_directory" }
+      if {[file exists $the_directory]} {
+        foreach the_environment_variable $list_of_environment_variables {
+          if {$the_debug} { puts stderr "## prepending $the_directory to $the_environment_variable" }
+          prepend-path $the_environment_variable $the_directory
+        }
+      }
+    }
+  }
+    
+  # parse_me 
+  # nb, requires $::the_root  
+	proc parse_me {} {
+    set the_debug 0
+    if {$the_debug} { puts stderr "##\n## enter: parse_me" }
+    #
+    if {$the_debug} { puts stderr "## the_root: $::the_root" }
+    # run-time environment
+		prepend_to_environment {"bin" "sbin" "usr/bin" "usr/sbin"} {"PATH"} 
+		prepend_to_environment {"man" "share/man" "usr/share/man"} {"MANPATH"} 
+		prepend_to_environment {"lib"} {"LD_LIBRARY_PATH"}
+    # compile-time environment
+		prepend_to_environment {"include"} {"CPATH"} 
+    # nb, check for sub-directories
+    set foo [glob -directory [join [list $::the_root "include"] "/"] -nocomplain -type d *]
+    if {[llength $foo]} {
+      prepend_to_environment $foo {"CPATH"} 
+    }
+		prepend_to_environment {"lib"} {"LIBRARY_PATH"} 
+    # pythonpath
+    set the_python_major_version [python_version_major]
+    set the_python_lib [join [list $::the_root "lib" $the_python_major_version "site-packages"] "/"]
+		prepend_to_environment [list $the_python_lib] {"PYTHONPATH"}
+    # perllib
+    set the_version [perl_version]
+    set the_perl [perl_version_major]
+    prepend_to_environment [join [list $::the_root "lib" $the_perl "site_perl" $the_version] "/"] {"PERLLIB"}
+    prepend_to_environment [join [list $::the_root "lib" "perl" "site_perl" $the_version] "/"] {"PERLLIB"}
+  }
+
+  proc python_version {} {
+    set foo [exec python -c {import sys; print sys.version;} ]
+    set foo [split $foo " "]
+    set foo [lindex $foo 0]
+    return $foo
+  }
+
+  proc python_version_major {} {
+    set foo [python_version]
+    set foo [split $foo "."]
+    set foo [lrange $foo 0 1]
+    set foo [join $foo "."]
+    set foo [list "python" $foo]
+    set foo [join $foo ""]
+    return $foo
+  }
+
+  proc perl_version {} {
+    set foo [exec perl -MEnglish -e {printf "%vd", $PERL_VERSION;} ] 
+    return $foo
+  }
+
+  proc perl_version_major {} {
+    set foo [perl_version]
+    set foo [split $foo '.']
+    set foo [lindex $foo 0]
+    set foo [list "perl" $foo]
+    set foo [join $foo ""]
+    return $foo 
+  }
+
+  
+  ## load requisite modules
+  proc load_prerequisites {list_of_modules} {
+    set the_debug 0
+    foreach single_module $list_of_modules {
+      if {$the_debug} { puts stderr "## checking $single_module" }
+      if {![is-loaded $single_module]} {
+        if {$the_debug} { puts stderr "## loading $single_module" }
+        module load $single_module
+      }
+    }
+  }
+
+} 
+
+## nb, ussage 
+## parse_me [module-info name]
+
+# vim:ts=2:sw=2:expandtab
+

@@ -1,0 +1,42 @@
+#%Modules
+
+## load required modules
+if {! [ is-loaded freesurfer ] } {
+	module load freesurfer/4.5.0
+}
+
+if {! [ is-loaded matlab ] } {
+	module load matlab/2007b
+}
+
+if {! [ is-loaded bxh_xcede_tools ] } {
+	module load bxh_xcede_tools/2011-08-28 
+}
+
+if {! [ is-loaded fsl ] } {
+	module load fsl/4.1 
+}
+
+if {! [ is-loaded mricron ] } {
+	module load mricron/2010-01-04
+}
+
+## other saxelab customizations
+if {! [ is-loaded nklab ] } {
+
+	set-alias rm "rm -i" 
+	set-alias mv "mv -i" 
+	set-alias cp "cp -i"
+	set-alias ls "ls --color=auto"
+
+	puts stdout "umask 0002;"
+
+	append-path PATH "/usr/NX/bin"
+
+	# dtitk stuff
+	set dtitk_root "/software/dtitk"
+	setenv DTITK_ROOT "$dtitk_root"
+	append-path PATH "$dtitk_root/bin:$dtitk_root/utilities:$dtitk_root/scripts:/software/itksnap/bin"
+
+}
+

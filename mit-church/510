@@ -1,0 +1,8 @@
+#%Modules
+
+## load required modules
+if {! [ is-loaded ikarus ] } {
+        module load ikarus/1870
+}
+
+append-path IKARUS_LIBRARY_PATH "/software/pkg/mit-church"

@@ -1,0 +1,29 @@
+#%Modules
+
+## other saxelab customizations
+#if {! [ is-loaded saxelab ] } {
+
+	set-alias rm "rm -i" 
+	set-alias mv "mv -i" 
+	set-alias cp "cp -i"
+	set-alias ls "ls --color=auto"
+
+	puts stdout "umask 0002;"
+
+	set experiment_root "/groups/saxelab"
+	set software_root "/software/saxelab"
+
+	setenv FSF_MATLAB_ARGS "-nodesktop"
+	setenv EXPERIMENT_ROOT_DIR "$experiment_root"
+	setenv SOFTWARE_ROOT_DIR "$software_root" 
+	setenv SUBJECTS_DIR "$software_root/FS_RECONS/$tcl_platform(user)" 
+
+	append-path PATH "/software/common/bin:~/.myscripts:$software_root/bin:/usr/NX/bin"
+
+	# dtitk stuff
+	set dtitk_root "/software/dtitk"
+	setenv DTITK_ROOT "$dtitk_root"
+	append-path PATH "$dtitk_root/bin:$dtitk_root/utilities:$dtitk_root/scripts:/software/itksnap/bin"
+
+
+#}

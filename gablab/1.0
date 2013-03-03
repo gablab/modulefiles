@@ -1,0 +1,28 @@
+#%Modules
+
+## load required modules
+if {! [ is-loaded freesurfer ] } {
+	module load freesurfer/4.5.0
+}
+
+if {! [ is-loaded matlab ] } {
+	module load matlab/2010b
+}
+
+if {! [ is-loaded fsl ] } {
+	module load fsl/4.1
+}
+
+## other gablab customizations
+if {! [ is-loaded gablab ] } {
+
+	set-alias ls "ls --color=auto"
+
+	puts stdout "umask 0002;"
+
+	# dtitk stuff
+	set dtitk_root "/software/dtitk"
+	setenv DTITK_ROOT "$dtitk_root"
+	append-path PATH "$dtitk_root/bin:$dtitk_root/utilities:$dtitk_root/scripts:/software/itksnap/bin:/software/afni:/software/froi/bin:/software/mne/bin:/software/dtk/current:/software/common/bin:/software/slicer/current"
+
+}

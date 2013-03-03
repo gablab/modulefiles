@@ -1,0 +1,21 @@
+#%Modules
+
+conflict freesurfer
+
+
+
+set the_root "/software/pkg/freesurfer/freesurfer-5.1.0"
+
+set shellt [ module-info shelltype ]
+set bashfile "$the_root/SetUpFreeSurfer.sh"
+set tcshfile "$the_root/SetUpFreeSurfer.csh"
+
+if { [string compare $shellt "sh"] == 0 } {
+
+	puts "export FS_OVERRIDE=1 && export FREESURFER_HOME=$the_root && source $bashfile ;"
+
+} else {
+
+	puts "setenv FS_OVERRIDE 1 && setenv FREESURFER_HOME $the_root && source $tcshfile ;"
+
+}
