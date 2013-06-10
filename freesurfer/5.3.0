@@ -4,7 +4,7 @@ conflict freesurfer
 
 
 
-set the_root "/software/Freesurfer/5.2.0"
+set the_root "/software/Freesurfer/5.3.0"
 
 set shellt [ module-info shelltype ]
 set bashfile "$the_root/SetUpFreeSurfer.sh"

@@ -1,0 +1,11 @@
+#%Modules
+
+set program "mricron"
+set version "2012-12"
+
+prepend-path PATH "/software/pkg/$program/$program-$version"
+
+set fslconf "/etc/fsl/fsl.sh"
+if {[file exists $fslconf]} {
+	puts stdout ". $fslconf"
+}
